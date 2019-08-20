@@ -204,7 +204,7 @@ def index(request):
     # run()
     return HttpResponse('success')
 
-
+# global tcpCliSock
 
 def hreatBeat(tcpCliSock):
     sum = 0  # 无回应次数
@@ -213,18 +213,20 @@ def hreatBeat(tcpCliSock):
         if sum < 3:
             try:
                 tcpCliSock.sendall(bytes("heartBeat".encode('utf-8')))  #心跳包
+                # global tcpCliSock
                 sum = 0
             except socket.error:
                 sum = sum + 1
                 continue
         else:
             tcpCliSock.close()
-            # print('client已断开')
+            print('break')
             #添加导数据库
-            break
+            continue
 
 
 def process(tcpCliSock, addr):
+    # global tcpCliSock
     print("connect from " + str(addr))
 
     tcpCliSock.sendall(bytes("here is server".encode('utf-8')))
