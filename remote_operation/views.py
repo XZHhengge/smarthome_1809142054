@@ -145,8 +145,8 @@ def udp_handler():
     print("waiting to receive messages...")
     while True:
         udp_data, ip_address = udp_socket.recvfrom(1024)
-        id, tag, version, count = struct.unpack("!Hc2I", udp_data)
-        print(id, tag, version, count, ip_address)
+        # id, tag, version, count = struct.unpack("!Hc2I", udp_data)
+        # print(id, tag, version, count, ip_address)
         str_data = str(udp_data, encoding='utf-8')
         print(str_data)
         number = json.loads(str_data)['number']
@@ -198,7 +198,8 @@ def tcp_handler():
 def index(request):
     # print('启动UDP处理线程')
     # udp_thread = threading.Thread(target=udp_handler)
-    udp_thread = threading.Thread(target=run)
+    # udp_thread = threading.Thread(target=run)
+    udp_thread = threading.Thread(target=udp2)
     udp_thread.setDaemon(True)
     udp_thread.start()
     # run()
@@ -209,7 +210,7 @@ def index(request):
 def hreatBeat(tcpCliSock):
     sum = 0  # 无回应次数
     while True:
-        time.sleep(10)
+        time.sleep(30)
         if sum < 3:
             try:
                 tcpCliSock.sendall(bytes("heartBeat".encode('utf-8')))  #心跳包
@@ -220,9 +221,10 @@ def hreatBeat(tcpCliSock):
                 continue
         else:
             tcpCliSock.close()
-            print('break')
+            print('tcpCliSock.close()')
             #添加导数据库
-            continue
+            break
+            # continue
 
 
 def process(tcpCliSock, addr):
@@ -256,16 +258,22 @@ global conn
 def run():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind(("127.0.0.1", 5555))
+    server.bind(("0.0.0.0", 5555))
     server.listen(5)
     while True:
         r, w, e = select.select([server, ], [], [], 1)
         # enumerate()分别列举出list r中的序号和内容
-        for i, server in enumerate(r):
+        connect, addr = server.accept()
+        if addr[0] == '113.107.163.197':
             global conn
-            conn, addr = server.accept()
+            conn = connect
             t = threading.Thread(target=process, args=(conn, addr))
+            t.setDaemon(True)
             t.start()
+        else:
+            del connect
+            print("舍弃连接-------------------------------------------------------------------------------------", addr)
+            pass
 
 def tcp(request, data):
     global conn
@@ -298,6 +306,7 @@ def tcplink(sock, addr):
 
 # 创建 socket 对象
 global s
+global info
 def run2():
     global s
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -317,3 +326,105 @@ def tcpsend2(request, data):
     global s
     s.sendall(bytes(data.encode('utf-8')))
     return HttpResponse('success')
+
+
+def udp2():
+    global udp_socket
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.bind(('0.0.0.0', 23333))
+
+    print("waiting to receive messages...")
+    global info
+    info = {
+        'xxxx': 'port1',
+        'yyyy': 'port2',
+        'zzzz': 'port3',
+        'bbbb': 'port4',
+    }
+
+    while True:
+        udp_data, ip_address = udp_socket.recvfrom(1024)
+
+        # if ip_address[0] == '113.107.163.197':
+        if ip_address[0] == '127.0.0.1':
+            if udp_data[0:4] == b'xxxx':
+                info['xxxx'] = str(ip_address)
+                thred = threading.Thread(target=udpprocess, args=(udp_socket, ip_address))
+                thred.start()
+            elif udp_data[0:4] == b'yyyy':
+                info['yyyy'] = str(ip_address)
+                thred = threading.Thread(target=udpprocess, args=(udp_socket, ip_address))
+                thred.start()
+            elif udp_data[0:4] == b'zzzz':
+                info['zzzz'] = str(ip_address)
+                thred = threading.Thread(target=udpprocess, args=(udp_socket, ip_address))
+                thred.start()
+            elif udp_data[0:4] == b'bbbb':
+                info['bbbb'] = str(ip_address)
+                thred = threading.Thread(target=udpprocess, args=(udp_socket, ip_address))
+                thred.start()
+            else:
+                pass
+
+        else:
+            print(ip_address)
+            break
+        # 记录设备信息
+
+
+def udpprocess(udp_socket, ip_address):
+    print('connect from {}'.format(ip_address))
+    #
+
+    udp_socket.sendto(bytes("heartBeat".encode('utf-8')), ip_address)
+
+    thr = threading.Thread(target=hreatbeat, args=(udp_socket, ip_address))
+    thr.start()
+    #  thr.is_alive() 用于监测进程thr是否还存在（即client是否还在连接中）
+    while thr.is_alive():
+        pattern_data = udp_socket.recvfrom(1024)
+        pattern_data = str(pattern_data[0], encoding='utf-8')
+        # pattern_data.decode('utf-8')
+        if pattern_data[5:14] == 'heartbeat':
+            # print('接收时间{}'.format(datetime.now()))
+            print('心跳包')
+            continue
+        else:
+            # print('接收时间{}'.format(datetime.now()))
+            print(pattern_data)
+            print('接收设备指令')
+            continue
+        # print(pattern_data)
+        # print(pattern_data)
+        # print("do everything you like here")
+    else:
+        print('client已断开')
+        # break
+
+def hreatbeat(udp_socket, ip_address):
+    while True:
+        # udp_data, ip_address = udp_socket.recvfrom(1024)
+        time.sleep(30)
+        udp_socket.sendto(bytes("heartBeat".encode('utf-8')), ip_address)
+        print("发送时间", datetime.now())
+
+
+def udpsend(request, data):
+    print(info)
+    if data == 'xxxx':
+        udp_socket.sendto(bytes(data.encode('utf-8')), eval(info['xxxx']))
+        return HttpResponse('success')
+    elif data == 'yyyy':
+        udp_socket.sendto(bytes(data.encode('utf-8')), eval(info['yyyy']))
+        return HttpResponse('success')
+    elif data == 'zzzz':
+        udp_socket.sendto(bytes(data.encode('utf-8')), eval(info['zzzz']))
+        return HttpResponse('success')
+    elif data == 'bbbb':
+        udp_socket.sendto(bytes(data.encode('utf-8')), eval(info['bbbb']))
+        return HttpResponse('success')
+    else:
+        return HttpResponse('failure')
+
+
+

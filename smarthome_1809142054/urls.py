@@ -16,12 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from remote_operation.views import udp, index, tcp, tcpsend2
+from remote_operation.views import udp, index, tcp, tcpsend2, udpsend
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('send/<slug:data>', udp),
+    path('udpsend/<slug:data>', udpsend),
     path('tcpsend/<slug:data>', tcp),
     path('tcpsend2/<slug:data>', tcpsend2),
     path('', index)
+
 ]
