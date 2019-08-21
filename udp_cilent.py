@@ -28,7 +28,7 @@ def udp(data):
 
         receive = str(receive, encoding='utf-8')  # 转码
 
-        if receive == 'heartBeat':
+        if receive[0:9] == 'heartBeat':
             print('心跳包')
             info = "info:heartbeat-name:{}-status:open-number:5-time:"
             s.sendto(bytes(info.encode('utf-8')), ip_port)

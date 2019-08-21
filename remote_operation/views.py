@@ -344,7 +344,7 @@ def udp2():
 
     while True:
         udp_data, ip_address = udp_socket.recvfrom(1024)
-
+        # time.sleep(1)
         # if ip_address[0] == '113.107.163.197':
         if ip_address[0] == '127.0.0.1':
             if udp_data[0:4] == b'xxxx':
@@ -376,8 +376,8 @@ def udpprocess(udp_socket, ip_address):
     print('connect from {}'.format(ip_address))
     #
 
-    udp_socket.sendto(bytes("heartBeat".encode('utf-8')), ip_address)
-
+    udp_socket.sendto(bytes("heartBeatapwfidhajpgfjapfwafdafnapfalgwnalnsaegfinoa".encode('utf-8')), ip_address)
+    time.sleep(1)
     thr = threading.Thread(target=hreatbeat, args=(udp_socket, ip_address))
     thr.start()
     #  thr.is_alive() 用于监测进程thr是否还存在（即client是否还在连接中）
@@ -405,7 +405,7 @@ def hreatbeat(udp_socket, ip_address):
     while True:
         # udp_data, ip_address = udp_socket.recvfrom(1024)
         time.sleep(30)
-        udp_socket.sendto(bytes("heartBeat".encode('utf-8')), ip_address)
+        udp_socket.sendto(bytes("heartBeatapwfidhajpgfjapfwafdafnapfalgwnalnsaegfinoa".encode('utf-8')), ip_address)
         print("发送时间", datetime.now())
 
 
