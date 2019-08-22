@@ -24,6 +24,6 @@ urlpatterns = [
     path('udpsend/<slug:data>', udpsend),
     path('tcpsend/<slug:data>', tcp),
     path('tcpsend2/<slug:data>', tcpsend2),
-    path('', index)
+    # path('', index)
 
 ]

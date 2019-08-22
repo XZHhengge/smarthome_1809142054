@@ -205,7 +205,19 @@ def index(request):
     # run()
     return HttpResponse('success')
 
-# global tcpCliSock
+def start():
+    # print('启动UDP处理')
+    # udp2()
+    # return True
+    # udp_thread = threading.Thread(target=udp_handler)
+    udp_thread = threading.Thread(target=run)
+    # udp_thread = threading.Thread(target=udp2)
+    udp_thread.setDaemon(True)
+    udp_thread.start()
+    # run()
+    return HttpResponse('success')
+
+global client_info
 
 def hreatBeat(tcpCliSock):
     sum = 0  # 无回应次数
@@ -254,50 +266,95 @@ def process(tcpCliSock, addr):
     else:
         print('client已断开')
 global conn
-
+global connect_list
 def run():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind(("0.0.0.0", 5555))
+    server.bind(("0.0.0.0", 23333))
     server.listen(5)
+    global connect_list
+    connect_list = []
     while True:
-        r, w, e = select.select([server, ], [], [], 1)
+        # r, w, e = select.select([server, ], [], [], 1)
         # enumerate()分别列举出list r中的序号和内容
         connect, addr = server.accept()
-        if addr[0] == '113.107.163.197':
-            global conn
-            conn = connect
-            t = threading.Thread(target=process, args=(conn, addr))
-            t.setDaemon(True)
-            t.start()
+        data = connect.recv(1024)
+        print(addr[1])
+        print(data)
+        # if addr[0] == '113.107.163.197':
+        if addr[0] == '127.0.0.1':
+            connect_dict = {}
+            if str(data, encoding='utf-8')[0:4] == 'xxxx':
+                # global conn
+                # conn = connect
+                connect_dict['xxxx'] = connect
+                connect_list.append(connect_dict)
+                print(connect_list)
+                t = threading.Thread(target=process, args=(connect, addr))
+                t.setDaemon(True)
+                t.start()
+            if str(data, encoding='utf-8')[0:4] == 'yyyy':
+                # global conn
+                # conn = connect
+                connect_dict['yyyy'] = connect
+                connect_list.append(connect_dict)
+                print(connect_list)
+                t = threading.Thread(target=process, args=(connect, addr))
+                t.setDaemon(True)
+                t.start()
+            if str(data, encoding='utf-8')[0:4] == 'zzzz':
+                # global conn
+                # conn = connect
+                connect_dict['zzzz'] = connect
+                connect_list.append(connect_dict)
+                t = threading.Thread(target=process, args=(connect, addr))
+                t.setDaemon(True)
+                t.start()
+            if str(data, encoding='utf-8')[0:4] == 'bbbb':
+                # global conn
+                # conn = connect
+                connect_dict['bbbb'] = connect
+                connect_list.append(connect_dict)
+                t = threading.Thread(target=process, args=(connect, addr))
+                t.setDaemon(True)
+                t.start()
         else:
             del connect
             print("舍弃连接-------------------------------------------------------------------------------------", addr)
             pass
 
 def tcp(request, data):
-    global conn
-    conn.sendall(bytes(data.encode('utf-8')))
+    # global conn
+    global connect_list
+    print(connect_list)
+    if data == 'xxxx':
+        connect_list[0]['xxxx'].sendall(bytes(data.encode('utf-8')))
+    if data == 'yyyy':
+        connect_list[1]['yyyy'].sendall(bytes(data.encode('utf-8')))
+    if data == 'zzzz':
+        connect_list[2]['zzzz'].sendall(bytes(data.encode('utf-8')))
+    if data == 'bbbb':
+        connect_list[3]['bbbb'].sendall(bytes(data.encode('utf-8')))
     return HttpResponse('success')
 
 
-def tcplink(sock, addr):
-    print('Accept new connection from %s:%s...' % addr)
-    # sock.send(b'Welcome!')
-    while True:
-        data = sock.recv(1024)
-        time.sleep(1)
-        print(data)
-        # 接收心跳包
-        if data.decode('utf-8')[5:14] == 'heartbeat':
-            print('心跳包')
-            sock.send(bytes('heartbeat{}'.format(datetime.now()).encode('utf-8')))
-            continue
-        elif data == '':
-            break
-        else:
-            print('指令下发回传')
-            continue
+# def tcplink(sock, addr):
+#     print('Accept new connection from %s:%s...' % addr)
+#     # sock.send(b'Welcome!')
+#     while True:
+#         data = sock.recv(1024)
+#         time.sleep(1)
+#         print(data)
+#         # 接收心跳包
+#         if data.decode('utf-8')[5:14] == 'heartbeat':
+#             print('心跳包')
+#             sock.send(bytes('heartbeat{}'.format(datetime.now()).encode('utf-8')))
+#             continue
+#         elif data == '':
+#             break
+#         else:
+#             print('指令下发回传')
+#             continue
         # if not data or data.decode('utf-8') == 'exit':
         #     break
         # sock.send(('Hello, %s!' % data.decode('utf-8')).encode('utf-8'))
@@ -307,26 +364,31 @@ def tcplink(sock, addr):
 # 创建 socket 对象
 global s
 global info
-def run2():
-    global s
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    s.bind(('127.0.0.1', 5555))
-    s.listen(5)
-    print('Waiting for connection...')
-
-    while True:
-        # 接受一个新连接:
-        sock, addr = s.accept()
-        # 创建新线程来处理TCP连接:
-        t = threading.Thread(target=tcplink, args=(sock, addr))
-        t.start()
+# def run2():
+#     global s
+#     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#
+#     s.bind(('127.0.0.1', 5555))
+#     s.listen(5)
+#     print('Waiting for connection...')
+#
+#     while True:
+#         # 接受一个新连接:
+#         sock, addr = s.accept()
+#         # 创建新线程来处理TCP连接:
+#         t = threading.Thread(target=tcplink, args=(sock, addr))
+#         t.start()
 
 def tcpsend2(request, data):
     global s
     s.sendall(bytes(data.encode('utf-8')))
     return HttpResponse('success')
 
+
+
+
+
+# 下面的为新建的udp通讯
 
 def udp2():
     global udp_socket

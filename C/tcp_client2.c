@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#define SERVER_PORT 5555
+#define SERVER_PORT 23333
 
 /*
  连接到服务器后，会不停循环，等待输入，
@@ -46,14 +46,21 @@ int main()
 	serverAddr.sin_port = htons(SERVER_PORT);
     //指定服务器端的ip，本地测试：127.0.0.1
     //inet_addr()函数，将点分十进制IP转换成网络字节序IP
-	serverAddr.sin_addr.s_addr = inet_addr("94.191.87.62");
-//	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+//	serverAddr.sin_addr.s_addr = inet_addr("94.191.87.62");
+	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	if(connect(clientSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
 	{
 		perror("connect");
 		return 1;
 	}
-
+//       先发
+    	char info[] = "bbbb-info:heartbeat-name:{}-status:open-number:5-time:{}";
+		send(clientSocket, info, sizeof(info)-1, 0);
+//		if(ret == -1)
+//        {
+//            printf("send() error: %s\n", strerror(errno));
+//	    	return -1;
+//        }
 
 	while(1)
 	{
@@ -97,8 +104,10 @@ int main()
 		    printf("不是心跳包");
 		    printf("recv data of my world is: %s\n", recvbuf);
             continue;
-		}
-	}
+		};
+
+	};
+	printf("clientSocket");
 	close(clientSocket);
 	return 0;
 }

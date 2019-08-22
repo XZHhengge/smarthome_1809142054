@@ -11,6 +11,7 @@ def udp(data):
     # s.settimeout(10)  # socket发送和接收时间等待时间不能超过10秒
 
     ip_port = ('0.0.0.0', 23333)
+    # ip_port = ('47.92.222.94', 5555)
     s.sendto(bytes(data.encode('utf-8')), ip_port)
     # ip_port = ('94.191.87.62', 23333)  # ip,端口
     while True:
@@ -55,7 +56,8 @@ def udp(data):
         # time.sleep(1)
 
 if __name__ == '__main__':
-    number = ['xxxx', 'yyyy', 'zzzz', 'bbbb']
+    number = ['xxxxxxxxxxxxxxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
+        , 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz', 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb']
     for i in number:
         t = threading.Thread(target=udp, args=(i,))
         t.start()
