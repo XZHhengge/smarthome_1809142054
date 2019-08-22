@@ -64,24 +64,6 @@ int main()
 
 	while(1)
 	{
-//		printf("Input your world:>");
-//		scanf("%s", sendbuf);
-//		printf("\n");
-//		sleep(10);
-//        while(1){
-//        printf("connect with destination host...\n");
-//        char info[] = "info:heartbeat-name:{}-status:open-number:5-time:";
-//        send(clientSocket, info, sizeof(info)-1, 0);
-//        }
-
-//        char time[] = (char) (1+tmp_ptr->tm_mon);
-//        strcpy(info, time);
-
-
-
-//		if(strcmp(sendbuf, "quit") == 0)
-//			break;
-
 
 		iDataNum = recv(clientSocket, recvbuf, sizeof(recvbuf)-1, 0);
 		recvbuf[iDataNum] = '\0';

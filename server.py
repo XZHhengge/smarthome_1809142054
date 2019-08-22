@@ -43,7 +43,3 @@ def run2():
         # 创建新线程来处理TCP连接:
         t = threading.Thread(target=tcplink, args=(sock, addr))
         t.start()
-
-
-if __name__ == '__main__':
-    run()

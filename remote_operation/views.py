@@ -210,8 +210,8 @@ def start():
     # udp2()
     # return True
     # udp_thread = threading.Thread(target=udp_handler)
-    udp_thread = threading.Thread(target=run)
-    # udp_thread = threading.Thread(target=udp2)
+    # udp_thread = threading.Thread(target=run)
+    udp_thread = threading.Thread(target=udp2)
     udp_thread.setDaemon(True)
     udp_thread.start()
     # run()
