@@ -115,6 +115,7 @@ def control_air_conditioner(request):
         response['msg'] = 'Fail, The target device has been off-line or command error.'
         return JsonResponse(response)
 
+
 flag = False
 global udp_socket
 from datetime import datetime
@@ -195,25 +196,31 @@ def tcp_handler():
         clientsocket.send(msg.encode('utf-8'))
         clientsocket.close()
 
+import asyncio
 def index(request):
     # print('启动UDP处理线程')
     # udp_thread = threading.Thread(target=udp_handler)
-    # udp_thread = threading.Thread(target=run)
-    udp_thread = threading.Thread(target=udp2)
+    udp_thread = threading.Thread(target=run)
+    # udp_thread = threading.Thread(target=udp2)
     udp_thread.setDaemon(True)
     udp_thread.start()
     # run()
     return HttpResponse('success')
 
 def start():
-    # print('启动UDP处理')
+    print('启动处理')
     # udp2()
     # return True
     # udp_thread = threading.Thread(target=udp_handler)
-    # udp_thread = threading.Thread(target=run)
-    udp_thread = threading.Thread(target=udp2)
+    # await run()
+    udp_thread = threading.Thread(target=run)
+    # # udp_thread = threading.Thread(target=udp2)
     udp_thread.setDaemon(True)
     udp_thread.start()
+    # loop = asyncio.get_event_loop()
+    # tasks = [run(), process()]
+    # loop.run_until_complete(asyncio.wait(tasks))
+    # loop.close()
     # run()
     return HttpResponse('success')
 
@@ -241,80 +248,63 @@ def hreatBeat(tcpCliSock):
 
 def process(tcpCliSock, addr):
     # global tcpCliSock
-    print("connect from " + str(addr))
+        print("connect from " + str(addr))
 
-    tcpCliSock.sendall(bytes("here is server".encode('utf-8')))
-    # pattern_data = tcpCliSock.recv(1024)
-    #  创建心跳包线程
-    #  须记住，创建新线程时 args参数如果只有一个的话一定要加个逗号！！
-    thr = threading.Thread(target=hreatBeat, args=(tcpCliSock,))
-    thr.start()
-    #  thr.is_alive() 用于监测进程thr是否还存在（即client是否还在连接中）
-    while thr.is_alive():
-        pattern_data = tcpCliSock.recv(1024)
-        pattern_data = str(pattern_data, encoding='utf-8')
-        if pattern_data[5:14] == 'heartbeat':
-            print('心跳包')
-            continue
+        tcpCliSock.sendall(bytes("here is server".encode('utf-8')))
+        # pattern_data = tcpCliSock.recv(1024)
+        #  创建心跳包线程
+        #  须记住，创建新线程时 args参数如果只有一个的话一定要加个逗号！！
+        thr = threading.Thread(target=hreatBeat, args=(tcpCliSock,))
+        thr.start()
+        #  thr.is_alive() 用于监测进程thr是否还存在（即client是否还在连接中）
+        while thr.is_alive():
+            pattern_data = tcpCliSock.recv(1024)
+            pattern_data = str(pattern_data, encoding='utf-8')
+            if pattern_data[5:14] == 'heartbeat':
+                print('心跳包')
+                continue
+            else:
+                print(pattern_data)
+                print('接收设备指令')
+                continue
+            # print(pattern_data)
+            # print(pattern_data)
+            # print("do everything you like here")
         else:
-            print(pattern_data)
-            print('接收设备指令')
-            continue
-        # print(pattern_data)
-        # print(pattern_data)
-        # print("do everything you like here")
-    else:
-        print('client已断开')
+            print('client已断开')
 global conn
-global connect_list
+global connect_dict
 def run():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(("0.0.0.0", 23333))
     server.listen(5)
-    global connect_list
-    connect_list = []
+    global connect_dict
+    connect_dict = {}
     while True:
         # r, w, e = select.select([server, ], [], [], 1)
         # enumerate()分别列举出list r中的序号和内容
         connect, addr = server.accept()
         data = connect.recv(1024)
-        print(addr[1])
-        print(data)
-        # if addr[0] == '113.107.163.197':
-        if addr[0] == '127.0.0.1':
-            connect_dict = {}
+        if addr[0] == '113.107.163.197':
+        # if addr[0] == '127.0.0.1':
             if str(data, encoding='utf-8')[0:4] == 'xxxx':
-                # global conn
-                # conn = connect
                 connect_dict['xxxx'] = connect
-                connect_list.append(connect_dict)
-                print(connect_list)
                 t = threading.Thread(target=process, args=(connect, addr))
                 t.setDaemon(True)
                 t.start()
             if str(data, encoding='utf-8')[0:4] == 'yyyy':
-                # global conn
-                # conn = connect
                 connect_dict['yyyy'] = connect
-                connect_list.append(connect_dict)
-                print(connect_list)
                 t = threading.Thread(target=process, args=(connect, addr))
                 t.setDaemon(True)
                 t.start()
             if str(data, encoding='utf-8')[0:4] == 'zzzz':
-                # global conn
-                # conn = connect
                 connect_dict['zzzz'] = connect
-                connect_list.append(connect_dict)
                 t = threading.Thread(target=process, args=(connect, addr))
                 t.setDaemon(True)
                 t.start()
             if str(data, encoding='utf-8')[0:4] == 'bbbb':
-                # global conn
-                # conn = connect
                 connect_dict['bbbb'] = connect
-                connect_list.append(connect_dict)
                 t = threading.Thread(target=process, args=(connect, addr))
                 t.setDaemon(True)
                 t.start()
@@ -325,16 +315,16 @@ def run():
 
 def tcp(request, data):
     # global conn
-    global connect_list
-    print(connect_list)
+    global connect_dict
+    print(connect_dict)
     if data == 'xxxx':
-        connect_list[0]['xxxx'].sendall(bytes(data.encode('utf-8')))
+        connect_dict['xxxx'].sendall(bytes(data.encode('utf-8')))
     if data == 'yyyy':
-        connect_list[1]['yyyy'].sendall(bytes(data.encode('utf-8')))
+        connect_dict['yyyy'].sendall(bytes(data.encode('utf-8')))
     if data == 'zzzz':
-        connect_list[2]['zzzz'].sendall(bytes(data.encode('utf-8')))
+        connect_dict['zzzz'].sendall(bytes(data.encode('utf-8')))
     if data == 'bbbb':
-        connect_list[3]['bbbb'].sendall(bytes(data.encode('utf-8')))
+        connect_dict['bbbb'].sendall(bytes(data.encode('utf-8')))
     return HttpResponse('success')
 
 
@@ -407,8 +397,8 @@ def udp2():
     while True:
         udp_data, ip_address = udp_socket.recvfrom(1024)
         # time.sleep(1)
-        # if ip_address[0] == '113.107.163.197':
-        if ip_address[0] == '127.0.0.1':
+        if ip_address[0] == '113.107.163.197':
+        # if ip_address[0] == '127.0.0.1':
             if udp_data[0:4] == b'xxxx':
                 info['xxxx'] = str(ip_address)
                 thred = threading.Thread(target=udpprocess, args=(udp_socket, ip_address))
